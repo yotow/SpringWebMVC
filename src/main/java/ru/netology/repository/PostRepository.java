@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PostRepository {
 
     private static final ConcurrentHashMap<Long, Post> posts = new ConcurrentHashMap<>();
-    private final AtomicLong count = new AtomicLong();
+    private AtomicLong count = new AtomicLong();
 
     public List<Post> all() {
         List<Post> res = new ArrayList<>();
@@ -30,7 +30,14 @@ public class PostRepository {
 
     public Post save(Post post) {
         if (post.getId() == 0) {
+            if(count.get() == Long.MAX_VALUE){
+                count = new AtomicLong();
+            }
             long id = count.incrementAndGet();
+            while (posts.containsKey(id)){
+                id = count.incrementAndGet();
+            }
+            post.setId(id);
             posts.put(id, post);
         } else {
             Optional<Post> p = getById(post.getId());
