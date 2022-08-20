@@ -29,14 +29,22 @@ public class PostRepository {
     }
 
     public Post save(Post post) {
-        long id = count.incrementAndGet();
-        posts.put(post.getId(), post);
+        if (post.getId() == 0) {
+            long id = count.incrementAndGet();
+            posts.put(id, post);
+        } else {
+            Optional<Post> p = getById(post.getId());
+            if (p.isPresent()) {
+                posts.put(post.getId(), post);
+            }
+        }
         return getById(post.getId()).orElseThrow(NotFoundException::new);
     }
 
     public void removeById(long id) {
         try {
             posts.remove(id);
+            count.decrementAndGet();
         } catch (NullPointerException e) {
             //ignore
         }
